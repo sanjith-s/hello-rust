@@ -1,3 +1,4 @@
+use git2::build::CheckoutBuilder;
 use git2::Branch;
 use git2::BranchType;
 use git2::Oid;
@@ -36,28 +37,21 @@ fn main() {
     };
     
 
-    // print!("{:?}", repo.merge_base( Oid::from_str("502d8092d1124c272a91d9771dc03f6d3311b416").unwrap(), Oid::from_str("719ec3594b3c6a0070dae4df687bd40bf30e7c6a").unwrap()).unwrap());
-    let mut rev_walk = repo.revwalk().unwrap();
-    rev_walk.push(Oid::from_str("a7a0251b416e56ba021dc3822ac7013c6a17695a").unwrap()).unwrap();
-    rev_walk.push_head().unwrap();
-    rev_walk.push_range("a7a0251b416e56ba021dc3822ac7013c6a17695a..HEAD").unwrap();
-    rev_walk.simplify_first_parent().unwrap();
-    rev_walk.set_sorting(git2::Sort::TOPOLOGICAL).unwrap();
+    // let branches = repo.branches(None).unwrap();
 
-    for commit in rev_walk {
-        let commit = commit.unwrap();
-        let commit = repo.find_commit(commit).unwrap();
-        let commit_id = commit.id();
-        let commit_id = commit_id.to_string();
-        let commit_message = commit.message().unwrap();
-        let commit_message = commit_message.trim();
-        let commit_author = commit.author();
-        let commit_author = commit_author.name().unwrap();
-        let commit_time = commit.time();
-        let commit_time = commit_time.seconds();
-        let commit_time = DateTime::from_timestamp(commit_time, 0).unwrap();
-        println!("commit_id: {}, commit_message: {}, commit_author: {}, commit_time: {}", commit_id, commit_message, commit_author, commit_time);
-    }
+
+    // for branch in branches {
+    //     let (branch, branch_type) = branch.unwrap();
+    //     let branch_name = branch.name().unwrap();
+    //     // dbg!(branch_name.unwrap());
+        
+    // }
+
+    let reference = repo.revparse_single("simple").unwrap();
+    let mut checkout_builder: CheckoutBuilder = CheckoutBuilder::new();
+    repo.checkout_tree(&reference, Some(&checkout_builder)).unwrap();
+
+    dbg!(reference);
 
     return;
 }
