@@ -50,7 +50,7 @@ fn main() {
     let reference = repo.revparse_single("simple").unwrap();
     let mut checkout_builder: CheckoutBuilder = CheckoutBuilder::new();
     repo.checkout_tree(&reference, Some(&checkout_builder)).unwrap();
-
+    repo.set_head("simple").unwrap();
     dbg!(reference);
 
     return;
