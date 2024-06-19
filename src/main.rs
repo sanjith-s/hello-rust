@@ -55,8 +55,17 @@ fn main() {
     //     println!("{} => {}", entry.name().unwrap(), entry.value().unwrap());
     // }
     let name = cfg.get_string("user.name").unwrap();
+
     let email = cfg.get_string("user.email").unwrap();
-    let index = repo.index().unwrap();
+
+    let mut index = repo.index().unwrap();
+    println!("{:?}", index.len());
+
+    let index_iter = index.iter();
+    for entry in index_iter {
+        dbg!(entry);
+    }
+    
     let index_tree_id = index.write_tree().unwrap();
     let index_tree = repo.find_tree(index_tree_id).unwrap();
     let parent = repo.head().unwrap().peel_to_commit().unwrap();
@@ -64,8 +73,25 @@ fn main() {
     let update_ref = "HEAD";
 
     let signature = git2::Signature::now(&name, &email).unwrap();
-    repo.commit(Some(update_ref),&signature, &signature, commit_message, &index_tree, &[&parent]);
-    println!("Commit done");
+    let _new_commit_id = match repo.commit(Some(update_ref),&signature, &signature, commit_message, &index_tree, &[&parent]) {
+        Ok(oid) => oid,
+        Err(e) => {
+            let json_str = json!(
+                {
+                    "code": e.raw_code(),
+                    "message": e.message()
+                }
+            ).to_string();
+        
+            return;
+        },
+    };
+
+
+    // return json!({
+    //     "code": 0,
+    //     "message": "Success",
+    // }).to_string();
     // print!("User Name: {:?}. User Email {:?}", , cfg.get_str("user.email").unwrap());
     // repo.set_index(&mut index).unwrap();
     
