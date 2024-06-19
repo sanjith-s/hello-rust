@@ -47,11 +47,29 @@ fn main() {
         
     // }
 
-    let reference = repo.revparse_single("simple").unwrap();
-    let mut checkout_builder: CheckoutBuilder = CheckoutBuilder::new();
-    repo.checkout_tree(&reference, Some(&mut checkout_builder)).unwrap();
-    repo.set_head("simple").unwrap();
-    dbg!(reference);
+    let cfg = repo.config().unwrap();
+
+    // let mut entries =cfg.entries(None).unwrap();
+    // while let Some(entry) = entries.next() {
+    //     let entry = entry.unwrap();
+    //     println!("{} => {}", entry.name().unwrap(), entry.value().unwrap());
+    // }
+    let name = cfg.get_string("user.name").unwrap();
+    let email = cfg.get_string("user.email").unwrap();
+    let index = repo.index().unwrap();
+    let index_tree_id = index.write_tree().unwrap();
+    let index_tree = repo.find_tree(index_tree_id).unwrap();
+    let parent = repo.head().unwrap().peel_to_commit().unwrap();
+    let commit_message = "My Libgit commit";
+    let update_ref = "HEAD";
+
+    let signature = git2::Signature::now(&name, &email).unwrap();
+    repo.commit(Some(update_ref),&signature, &signature, commit_message, &index_tree, &[&parent]);
+    println!("Commit done");
+    // print!("User Name: {:?}. User Email {:?}", , cfg.get_str("user.email").unwrap());
+    // repo.set_index(&mut index).unwrap();
+    
+    // dbg!(new_branch);
 
     return;
 }
