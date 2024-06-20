@@ -116,7 +116,7 @@ fn main() {
     let local_name = local_branch.name().unwrap().unwrap();
     let remote_name = remote_branch.name().unwrap().unwrap();
 
-    let commit_range = format!("{}..{}", local_name, remote_name);
+    let commit_range = format!("{}..{}", remote_name, local_name);
     walker.push_range(&commit_range).unwrap();
 
     dbg!(local_name, remote_name);
