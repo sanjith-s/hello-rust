@@ -36,7 +36,7 @@ fn create_callbacks(repo: &Repository) -> RemoteCallbacks {
     let mut callbacks = RemoteCallbacks::new();
 
     callbacks.credentials(|_url, username_from_url, _allowed_types| {
-        Cred::credential_helper(&repo.config().unwrap(), "https://github.com/sanjith-s/hello-rust.git", None)});
+        Cred::credential_helper(&repo.config().unwrap(), "https://github.com/sanjith-s/hello-rust.git", Some("sanjith-s"))});
 
     // &callbacks.credentials(|_str, _str_opt, _cred_type| {
     //     Cred::credential_helper(&repo.config().unwrap(), "https://github.com/sanjith-s/hello-rust.git", None)
@@ -95,7 +95,7 @@ fn main() {
     });
     push_options.remote_callbacks(callbacks);
 
-    remote_obj.push(&["refs/heads/main:refs/remotes/origin/main"], Some(&mut push_options)).unwrap();
+    remote_obj.push(&["refs/heads/main:refs/heads/main"], Some(&mut push_options)).unwrap();
     // dbg!(remote_obj.connected());
     
     // if remote_obj.connected() {
