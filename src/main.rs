@@ -61,19 +61,19 @@ fn main() {
     //     dbg!(result);
     // }
     
-    let repo_remotes = repo.remotes().unwrap();
+    // let repo_remotes = repo.remotes().unwrap();
 
-    let found_origin = repo_remotes.iter().any(|remote| {
-        remote.unwrap() == "origin"
-    });
+    // let found_origin = repo_remotes.iter().any(|remote| {
+    //     remote.unwrap() == "origin"
+    // });
     
-    if !found_origin {
-        println!("No origin remote found");
-        return;
-    }
+    // if !found_origin {
+    //     println!("No origin remote found");
+    //     return;
+    // }
 
-    let mut remote_obj = repo.find_remote("origin").unwrap();
-    dbg!(remote_obj.url().unwrap());
+    // let mut remote_obj = repo.find_remote("origin").unwrap();
+    // dbg!(remote_obj.url().unwrap());
 
     // remote_obj.fetch(&["main"], None, None);
 
@@ -87,15 +87,57 @@ fn main() {
     //     }
     
     // };
-    let mut push_options = git2::PushOptions::default();
-    let mut callbacks = create_callbacks(&repo);
-    callbacks.push_update_reference(|reference,error|{
-        println!("ref = {}, error = {:?}", reference, error);
-        Ok(())
-    });
-    push_options.remote_callbacks(callbacks);
 
-    remote_obj.push(&["refs/heads/main:refs/heads/main"], Some(&mut push_options)).unwrap();
+    // Push
+    // let mut push_options = git2::PushOptions::default();
+    // let mut callbacks = create_callbacks(&repo);
+    // callbacks.push_update_reference(|reference,error|{
+    //     println!("ref = {}, error = {:?}", reference, error);
+    //     Ok(())
+    // });
+    // push_options.remote_callbacks(callbacks);
+
+    // remote_obj.push(&["refs/heads/main:refs/heads/main"], Some(&mut push_options)).unwrap();
+    
+    let local_branch = repo.find_branch("main", git2::BranchType::Local).unwrap();
+    let remote_branch = match local_branch.upstream() {
+        Ok(branch) => branch,
+        Err(e) => {
+            let json_str = json!({
+                "code": e.code() as i32,
+                "message": "Unable to access Remote branch"
+            }).to_string();
+            return;
+        }
+    };
+
+    let mut walker = repo.revwalk().unwrap();
+
+    let local_name = local_branch.name().unwrap().unwrap();
+    let remote_name = remote_branch.name().unwrap().unwrap();
+
+    let commit_range = format!("{}..{}", local_name, remote_name);
+    walker.push_range(&commit_range).unwrap();
+
+    dbg!(local_name, remote_name);
+
+    for commit in walker {
+        let commit = commit.unwrap();
+        let commit = repo.find_commit(commit).unwrap();
+        let commit_id = commit.id();
+        let commit_id = commit_id.to_string();
+        let commit_message = commit.message().unwrap();
+        let commit_message = commit_message.trim();
+        let commit_author = commit.author();
+        let commit_author = commit_author.name().unwrap();
+        let commit_time = commit.time();
+        let commit_time = commit_time.seconds();
+        let commit_time = DateTime::from_timestamp(commit_time, 0).unwrap();
+
+        println!("Commit id: {:?} - Commit Message: {:?}", commit_id, commit_message);
+
+    }
+
     // dbg!(remote_obj.connected());
     
     // if remote_obj.connected() {
