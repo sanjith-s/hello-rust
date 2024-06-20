@@ -4,6 +4,7 @@ use git2::BranchType;
 use git2::Oid;
 use git2::Repository;
 use git2::StatusOptions;
+use std::iter;
 use std::path::Path;
 use std::collections::HashMap;
 use serde_json::json;
@@ -37,65 +38,48 @@ fn main() {
     };
     
 
-    // let branches = repo.branches(None).unwrap();
+    let config  = repo.config().unwrap();
 
+    let mut entries = config.entries(None).unwrap();
+    while let Some(entry) = entries.next() {
+        let entry = entry.unwrap();
+        println!("{} => {}", entry.name().unwrap(), entry.value().unwrap());
+    }    
+    
+    // let repo_remotes = repo.remotes().unwrap();
 
-    // for branch in branches {
-    //     let (branch, branch_type) = branch.unwrap();
-    //     let branch_name = branch.name().unwrap();
-    //     // dbg!(branch_name.unwrap());
-        
+    // let found_origin = repo_remotes.iter().any(|remote| {
+    //     remote.unwrap() == "origin"
+    // });
+    
+    // if !found_origin {
+    //     println!("No origin remote found");
+    //     return;
     // }
 
-    let cfg = repo.config().unwrap();
+    // let mut remote_obj = repo.find_remote("origin").unwrap();
+    // dbg!(remote_obj.url().unwrap());
 
-    // let mut entries =cfg.entries(None).unwrap();
-    // while let Some(entry) = entries.next() {
-    //     let entry = entry.unwrap();
-    //     println!("{} => {}", entry.name().unwrap(), entry.value().unwrap());
+    // match remote_obj.connect_auth(git2::Direction::Push, None, None) {
+    //     Ok(_) => println!("Connected to remote"),
+    //     Err(e) => {
+    //         println!("Failed to connect to remote: {:?}", e.code());
+    //         return;
+    //     }
+    
+    // };
+    
+    // if remote_obj.connected() {
+
+    //     let ref_specs = remote_obj.refspecs();
+
+    //     for spec in ref_specs {
+    //         println!("Ref spec: {:?}", spec.str());
+    //     }
+    //     println!("Connected to remote");
+    // } else {
+    //     println!("Not connected to remote");
     // }
-    let name = cfg.get_string("user.name").unwrap();
-
-    let email = cfg.get_string("user.email").unwrap();
-
-    let mut index = repo.index().unwrap();
-    println!("{:?}", index.len());
-
-    let index_iter = index.iter();
-    for entry in index_iter {
-        dbg!(entry);
-    }
-    
-    let index_tree_id = index.write_tree().unwrap();
-    let index_tree = repo.find_tree(index_tree_id).unwrap();
-    let parent = repo.head().unwrap().peel_to_commit().unwrap();
-    let commit_message = "My Libgit commit";
-    let update_ref = "HEAD";
-
-    let signature = git2::Signature::now(&name, &email).unwrap();
-    let _new_commit_id = match repo.commit(Some(update_ref),&signature, &signature, commit_message, &index_tree, &[&parent]) {
-        Ok(oid) => oid,
-        Err(e) => {
-            let json_str = json!(
-                {
-                    "code": e.raw_code(),
-                    "message": e.message()
-                }
-            ).to_string();
-        
-            return;
-        },
-    };
-
-
-    // return json!({
-    //     "code": 0,
-    //     "message": "Success",
-    // }).to_string();
-    // print!("User Name: {:?}. User Email {:?}", , cfg.get_str("user.email").unwrap());
-    // repo.set_index(&mut index).unwrap();
-    
-    // dbg!(new_branch);
 
     return;
 }
